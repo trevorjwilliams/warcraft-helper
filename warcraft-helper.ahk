@@ -2,7 +2,7 @@
 ; AutoHotkey Version: 1.0.48
 ; Language:       English
 ; Platform:       Win9x/NT
-; Author:         Trevor Williams <whiltx@comcast.net>
+; Author:         Trevor Williams
 ;
 ; Script Function:
 ;	Pressing any of the defined "keybinds" will start spamming that button until either a second keybind is pressed, the first keybind is pressed again, or enter is pressed.  Useful so that the user doesn't need to spam an ability manually to ensure its fastest possible execution in WoW.
