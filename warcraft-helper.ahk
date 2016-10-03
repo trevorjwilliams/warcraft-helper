@@ -12,16 +12,22 @@ SendMode Input  ; Recommended for new scripts due to its superior speed and reli
 SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
 SetKeyDelay, 100 ; This only works when we switch the SendMode, but we always want this value when we switch it.
 
-WowDir := "C:Program Files (x86)\World of Warcraft"
+WowDir := "C:\Program Files (x86)\World of Warcraft"
 LogFile := WoWDir . "\Logs\WoWCombatLog.txt"
-Password := "hopefully something secure, though this really isn't needed anymore with the battle.net launcher"
-WOLLauncher := A_Desktop . "\WoL.jnlp"
+EnvGet, LogLauncher, ProgramFiles(x86)
+LogLauncher := LogLauncher . "\Warcraft Logs Uploader\Warcraft Logs Uploader.exe"
+LogWindow := "Warcraft Logs Uploader"
+
+; Would be nice if there were something like Perl's qw() I could use here.
+all_binds := [";","q",".","p","y","j","x","1","2","3","4","5","6","u","i","k"]
+; Would be REAL nice if I could add newlines in the object definition.
+spam_binds := {"u": 1,"i": 1,"k": 1}
 
 BindKeys()
-;StartWOLInteractive()
-;StartWOW()
+StartLogging()
+StartWOW()
 WinWaitClose, World of Warcraft
-WinClose, World of Logs - Live Report Updater
+WinClose, %LogWindow%
 DeleteFile(LogFile)
 
 ExitApp
@@ -34,23 +40,9 @@ return
 ~enter:: ; temporarily disables all hotkeys for a few seconds (enough time to send a chat message without the script interfering)
 gosub STOPSPAM
 suspend on
-sleep 10000
+sleep 20000
 suspend off
 return
-
-BindKeys() {
-	spambinds := "2,3,4"
-	loop,parse,spambinds,CSV
-	{
-		hotkey, $%A_LoopField%, KEYPRESS, T3
-	}
-
-	stopbinds := "1,5,6,7,8,9,0,left,right,-,=,numpaddot,numpad0,numpad1,numpad2,numpad3,numpad4,numpad6,numpad7,numpad8,up,down,[,],end,NumpadMult,``"
-	loop,parse,stopbinds,CSV
-	{
-		hotkey, ~%A_LoopField%, STOPSPAM
-	}
-}
 
 STOPSPAM:
 Spamkey := false
@@ -84,24 +76,39 @@ else
 	return
 }
 
+BindKeys() {
+	global all_binds
+	global spam_binds
+
+	for key, value in all_binds
+	{
+		if spam_binds[value]
+		{
+			hotkey, $%value%, KEYPRESS, T3
+		}
+		else
+		{
+			hotkey, ~%value%, STOPSPAM
+		}
+	}
+}
+
 StartWOW() {
 	IfWinNotExist, World of Warcraft
 	{
 		global WoWDir
-		global Password
 
-		Run %WoWDir%\Wow-64.exe
-		;WinWaitActive, World of Warcraft
-		;Sleep 7000
-		;Send %Password%{Enter}
+		Run battlenet://WoW
+		WinWaitActive, World of Warcraft
 	}
 }
 
-StartWOLInteractive() {
-	IfWinNotExist, World of Logs - Live Report Updater
+StartLogging() {
+	global LogWindow
+	IfWinNotExist, %LogWindow%
 	{
 		global LogFile
-		global WOLLauncher
+		global LogLauncher
 
 		IfNotExist, %LogFile%
 		{
@@ -109,12 +116,11 @@ StartWOLInteractive() {
 			If ErrorLevel
 				MsgBox, Error creating %LogFile%
 		}
-		Run %WOLLauncher%
-		WinWaitActive, World of Logs - Data Uploader
-		SendMode Event ; We need delays between keypresses for java apps and Input doesn't support delays
+		Run %LogLauncher%
+		WinWaitActive, %LogWindow%
 		Sleep 1000
-		Send +{tab}{space}
-		SendMode Input
+		Send {tab 2}{space}
+		Send {tab 5}{space}
 	}
 }
 
